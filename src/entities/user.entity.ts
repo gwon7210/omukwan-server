@@ -30,6 +30,9 @@ export class User {
   @Column({ select: false })
   password: string;
 
+  @Column({ nullable: true })
+  profile_image_url: string;
+
   @CreateDateColumn()
   created_at: Date;
 
