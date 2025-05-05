@@ -1,4 +1,4 @@
-# 개축 서버 (Gaechuk Server)
+# 개척 서버 (Gaechuk Server)
 
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
