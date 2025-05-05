@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Request, Query, ParseIntPipe, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Request, Query, ParseIntPipe, UseInterceptors, UploadedFile, Param } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PostsService } from './posts.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -12,12 +12,19 @@ export class PostsController {
   @Get()
   @UseGuards(JwtAuthGuard)
   async findAll(
+    @Request() req,
     @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 10,
     @Query('post_type') postType?: string,
     @Query('cursor') cursor?: string,
   ) {
     const parsedCursor = cursor ? new Date(cursor) : undefined;
-    return this.postsService.findAll(limit, postType, parsedCursor);
+    return this.postsService.findAll(limit, postType, parsedCursor, req.user);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async findOne(@Request() req, @Param('id') id: string) {
+    return this.postsService.findOne(id, req.user);
   }
 
   @Post()
@@ -34,13 +41,13 @@ export class PostsController {
     }),
   )
   async create(
+    @Request() req,
     @Body() createPostDto: {
       title?: string;
       content: string;
       post_type: string;
     },
     @UploadedFile() file: Express.Multer.File,
-    @Request() req,
   ) {
     const imageUrl = file ? `/uploads/${file.filename}` : undefined;
     return this.postsService.create({
