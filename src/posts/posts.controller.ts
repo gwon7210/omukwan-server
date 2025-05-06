@@ -21,6 +21,16 @@ export class PostsController {
     return this.postsService.findAll(limit, postType, parsedCursor, req.user);
   }
 
+  @Get('my-omokwan-count-by-month')
+  @UseGuards(JwtAuthGuard)
+  async getMyOmokwanCountByMonth(
+    @Request() req,
+    @Query('year', new ParseIntPipe()) year: number,
+    @Query('month', new ParseIntPipe()) month: number,
+  ) {
+    return this.postsService.getMyOmokwanCountByMonth(req.user.id, year, month);
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   async findOne(@Request() req, @Param('id') id: string) {

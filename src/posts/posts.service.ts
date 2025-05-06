@@ -111,4 +111,27 @@ export class PostsService {
     const post = this.postsRepository.create(createPostDto);
     return await this.postsRepository.save(post);
   }
+
+  async getMyOmokwanCountByMonth(userId: string, year: number, month: number) {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 1);
+
+    const posts = await this.postsRepository
+      .createQueryBuilder('post')
+      .where('post.userId = :userId', { userId })
+      .andWhere('post.post_type = :type', { type: '오목완' })
+      .andWhere('post.created_at >= :startDate AND post.created_at < :endDate', { startDate, endDate })
+      .orderBy('post.created_at', 'DESC')
+      .getMany();
+
+    return {
+      count: posts.length,
+      posts: posts.map(post => ({
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        created_at: post.created_at,
+      }))
+    };
+  }
 } 
