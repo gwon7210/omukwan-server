@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Post } from '../entities/post.entity';
 import { User } from '../entities/user.entity';
 import { Like } from '../entities/like.entity';
+import { Comment } from '../entities/comment.entity';
 
 @Injectable()
 export class PostsService {
@@ -12,6 +13,8 @@ export class PostsService {
     private postsRepository: Repository<Post>,
     @InjectRepository(Like)
     private likesRepository: Repository<Like>,
+    @InjectRepository(Comment)
+    private commentsRepository: Repository<Comment>,
   ) {}
 
   async findAll(limit: number = 10, postType?: string, cursor?: Date, currentUser?: User) {
@@ -19,6 +22,7 @@ export class PostsService {
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.user', 'user')
       .loadRelationCountAndMap('post.likes_count', 'post.likes')
+      .loadRelationCountAndMap('post.comments_count', 'post.comments')
       .orderBy('post.created_at', 'DESC')
       .take(limit + 1);
 
