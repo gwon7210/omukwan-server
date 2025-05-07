@@ -130,7 +130,7 @@ export class PostsService {
         id: post.id,
         title: post.title,
         content: post.content,
-        created_at: post.created_at,
+        created_at: new Date(post.created_at.getTime() + (9 * 60 * 60 * 1000)).toISOString(), // UTC+9 (KST)
       }))
     };
   }
