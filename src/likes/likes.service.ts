@@ -4,17 +4,31 @@ import { Repository } from 'typeorm';
 import { Like } from '../entities/like.entity';
 import { User } from '../entities/user.entity';
 import { Post } from '../entities/post.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class LikesService {
   constructor(
     @InjectRepository(Like)
     private likesRepository: Repository<Like>,
+    private notificationsService: NotificationsService,
   ) {}
 
   async create(user: User, post: Post): Promise<Like> {
     const like = this.likesRepository.create({ user, post });
-    return await this.likesRepository.save(like);
+    const savedLike = await this.likesRepository.save(like);
+
+    // 자신의 게시물에 좋아요를 누른 경우 알림을 생성하지 않음
+    if (post.user.id !== user.id) {
+      await this.notificationsService.create(
+        post.user,
+        'like',
+        `${user.nickname}님이 회원님의 게시물을 좋아합니다.`,
+        post.id
+      );
+    }
+
+    return savedLike;
   }
 
   async remove(user: User, post: Post): Promise<void> {

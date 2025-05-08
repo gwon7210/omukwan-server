@@ -3,20 +3,56 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Comment } from '../entities/comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { PostsService } from '../posts/posts.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class CommentsService {
   constructor(
     @InjectRepository(Comment)
     private commentsRepository: Repository<Comment>,
+    private notificationsService: NotificationsService,
+    private postsService: PostsService,
+    private usersService: UsersService,
   ) {}
 
   async create(createCommentDto: CreateCommentDto, userId: string): Promise<Comment> {
+    const user = await this.usersService.findOne(userId);
     const comment = this.commentsRepository.create({
       ...createCommentDto,
-      userId,
+      user,
     });
-    return this.commentsRepository.save(comment);
+    const savedComment = await this.commentsRepository.save(comment);
+
+    // 게시물 작성자에게 알림 전송
+    const post = await this.postsService.findOne(createCommentDto.postId);
+    if (post.user.id !== userId) {
+      await this.notificationsService.create(
+        post.user,
+        'comment',
+        `${user.nickname}님이 회원님의 게시물에 댓글을 남겼습니다.`,
+        post.id
+      );
+    }
+
+    // 부모 댓글이 있는 경우, 부모 댓글 작성자에게도 알림 전송
+    if (createCommentDto.parentId) {
+      const parentComment = await this.commentsRepository.findOne({
+        where: { id: createCommentDto.parentId },
+        relations: ['user'],
+      });
+      if (parentComment && parentComment.user.id !== userId) {
+        await this.notificationsService.create(
+          parentComment.user,
+          'reply',
+          `${user.nickname}님이 회원님의 댓글에 답글을 남겼습니다.`,
+          post.id
+        );
+      }
+    }
+
+    return savedComment;
   }
 
   async findByPostId(postId: string): Promise<Comment[]> {
