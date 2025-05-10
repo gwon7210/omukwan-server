@@ -30,8 +30,8 @@ export class User {
   @Column({ select: false })
   password: string;
 
-  @Column({ nullable: true })
-  profile_image_url: string;
+  @Column({ nullable: true, type: 'varchar' })
+  profile_image_url: string | null;
 
   @CreateDateColumn()
   created_at: Date;

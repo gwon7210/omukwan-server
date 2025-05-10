@@ -26,21 +26,6 @@ export class UsersController {
     return this.usersService.findOne(req.user.id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
-  }
-
-  @Put(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: Partial<User>) {
-    return this.usersService.update(id, updateUserDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
-  }
-
   @Post('profile-image')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
@@ -60,5 +45,26 @@ export class UsersController {
   ) {
     const imageUrl = file ? `/uploads/profiles/${file.filename}` : undefined;
     return this.usersService.update(req.user.id, { profile_image_url: imageUrl });
+  }
+
+  @Delete('profile-image')
+  @UseGuards(JwtAuthGuard)
+  async deleteProfileImage(@Request() req) {
+    return this.usersService.update(req.user.id, { profile_image_url: null });
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.usersService.findOne(id);
+  }
+
+  @Put(':id')
+  update(@Param('id') id: string, @Body() updateUserDto: Partial<User>) {
+    return this.usersService.update(id, updateUserDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.usersService.remove(id);
   }
 } 

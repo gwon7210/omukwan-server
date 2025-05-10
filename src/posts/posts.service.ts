@@ -134,4 +134,58 @@ export class PostsService {
       }))
     };
   }
+
+  async search(keyword: string, limit: number = 10, cursor?: Date, currentUser?: User) {
+    const queryBuilder = this.postsRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.user', 'user')
+      .loadRelationCountAndMap('post.likes_count', 'post.likes')
+      .loadRelationCountAndMap('post.comments_count', 'post.comments')
+      .where('post.title ILIKE :keyword', { keyword: `%${keyword}%` })
+      .orWhere('post.content ILIKE :keyword', { keyword: `%${keyword}%` })
+      .orderBy('post.created_at', 'DESC')
+      .take(limit + 1);
+
+    if (cursor) {
+      queryBuilder.andWhere('post.created_at < :cursor', { cursor });
+    }
+
+    const posts = await queryBuilder.getMany();
+    const hasNextPage = posts.length > limit;
+    const items = hasNextPage ? posts.slice(0, -1) : posts;
+    const nextCursor = hasNextPage ? items[items.length - 1].created_at : null;
+
+    // 현재 사용자의 좋아요 여부 확인
+    let likedPosts: string[] = [];
+    if (currentUser?.id) {
+      const likes = await this.likesRepository.find({
+        where: { user: { id: currentUser.id } },
+        relations: ['post'],
+        select: {
+          post: {
+            id: true
+          }
+        }
+      });
+      likedPosts = likes.map(like => like.post.id);
+    }
+
+    // 각 게시글에 liked_by_me 필드 추가
+    const postsWithLikeStatus = items.map(post => {
+      const { likes, ...postWithoutLikes } = post;
+      return {
+        ...postWithoutLikes,
+        liked_by_me: Boolean(likedPosts.includes(post.id)),
+      };
+    });
+
+    return {
+      posts: postsWithLikeStatus,
+      meta: {
+        hasNextPage,
+        nextCursor,
+        limit,
+      },
+    };
+  }
 } 

@@ -21,6 +21,18 @@ export class PostsController {
     return this.postsService.findAll(limit, postType, parsedCursor, req.user);
   }
 
+  @Get('search')
+  @UseGuards(JwtAuthGuard)
+  async search(
+    @Request() req,
+    @Query('keyword') keyword: string,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 10,
+    @Query('cursor') cursor?: string,
+  ) {
+    const parsedCursor = cursor ? new Date(cursor) : undefined;
+    return this.postsService.search(keyword, limit, parsedCursor, req.user);
+  }
+
   @Get('my-omokwan-count-by-month')
   @UseGuards(JwtAuthGuard)
   async getMyOmokwanCountByMonth(
