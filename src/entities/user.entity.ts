@@ -18,10 +18,10 @@ export class User {
   @Column()
   nickname: string;
 
-  @Column()
+  @Column({ nullable: true })
   church_name: string;
 
-  @Column()
+  @Column({ nullable: true })
   faith_confession: string;
 
   @Column({ default: false })

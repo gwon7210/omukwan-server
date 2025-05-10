@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -11,6 +12,9 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: Partial<User>): Promise<User> {
+    if (createUserDto.password) {
+      createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
+    }
     const user = this.usersRepository.create(createUserDto);
     return await this.usersRepository.save(user);
   }
