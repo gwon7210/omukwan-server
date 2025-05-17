@@ -15,7 +15,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_DATABASE || 'gaechuk_db',
   entities: ['src/entities/*.entity.ts'],
   migrations: ['src/migrations/*.ts'],
-  synchronize: process.env.NODE_ENV !== 'production',
+  synchronize: true,
   ssl: process.env.NODE_ENV === 'production' ? {
     rejectUnauthorized: false
   } : false,
