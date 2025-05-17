@@ -1,12 +1,29 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import * as dotenv from 'dotenv';
+
+// 환경에 따른 .env 파일 로드
+dotenv.config({
+  path: `.env.${process.env.NODE_ENV || 'development'}`
+});
 
 export const databaseConfig: TypeOrmModuleOptions = {
   type: 'postgres',
-  host: 'localhost',
-  port: 5432,
-  username: 'postgres',
-  password: 'postgres',
-  database: 'gaechuk_db',
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '5432', 10),
+  username: process.env.DB_USERNAME || 'postgres',
+  password: process.env.DB_PASSWORD || 'postgres',
+  database: process.env.DB_DATABASE || 'gaechuk_db',
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  synchronize: true,
+  synchronize: process.env.NODE_ENV !== 'production',
+  ssl: process.env.NODE_ENV === 'production' ? {
+    rejectUnauthorized: false
+  } : false,
+  logging: process.env.NODE_ENV === 'development',
+  maxQueryExecutionTime: 1000,
+  poolSize: 10,
+  extra: {
+    connectionTimeoutMillis: 5000,
+    query_timeout: 10000,
+    statement_timeout: 10000,
+  }
 }; 
