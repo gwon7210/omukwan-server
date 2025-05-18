@@ -68,6 +68,7 @@ export class PostsController {
       title?: string;
       content: string;
       post_type: string;
+      is_private?: boolean;
     },
     @UploadedFile() file: Express.Multer.File,
   ) {

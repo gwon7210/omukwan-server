@@ -23,6 +23,9 @@ export class Post {
   @Column()
   post_type: string;
 
+  @Column({ default: false })
+  is_private: boolean;
+
   @CreateDateColumn()
   created_at: Date;
 

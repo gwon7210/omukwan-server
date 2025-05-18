@@ -30,6 +30,9 @@ export class PostsService {
       queryBuilder.where('post.post_type = :postType', { postType });
     }
 
+    // 비공개 게시물 제외
+    queryBuilder.andWhere('post.is_private = false');
+
     if (cursor) {
       queryBuilder.andWhere('post.created_at < :cursor', { cursor });
     }
@@ -83,6 +86,11 @@ export class PostsService {
       throw new NotFoundException(`게시물을 찾을 수 없습니다.`);
     }
 
+    // 비공개 게시물 접근 제한
+    if (post.is_private && post.user.id !== currentUser?.id) {
+      throw new NotFoundException(`게시물을 찾을 수 없습니다.`);
+    }
+
     let liked_by_me = false;
     if (currentUser?.id) {
       const like = await this.likesRepository.findOne({
@@ -106,6 +114,7 @@ export class PostsService {
     content: string;
     image_url?: string;
     post_type: string;
+    is_private?: boolean;
     user: User;
   }): Promise<Post> {
     const post = this.postsRepository.create(createPostDto);
@@ -130,6 +139,7 @@ export class PostsService {
         id: post.id,
         title: post.title,
         content: post.content,
+        is_private: post.is_private,
         created_at: new Date(post.created_at.getTime() + (9 * 60 * 60 * 1000)).toISOString(), // UTC+9 (KST)
       }))
     };
@@ -141,10 +151,14 @@ export class PostsService {
       .leftJoinAndSelect('post.user', 'user')
       .loadRelationCountAndMap('post.likes_count', 'post.likes')
       .loadRelationCountAndMap('post.comments_count', 'post.comments')
-      .where('post.title ILIKE :keyword', { keyword: `%${keyword}%` })
-      .orWhere('post.content ILIKE :keyword', { keyword: `%${keyword}%` })
+      .where('(post.title ILIKE :keyword OR post.content ILIKE :keyword)', { keyword: `%${keyword}%` })
       .orderBy('post.created_at', 'DESC')
       .take(limit + 1);
+
+    // 비공개 게시물 필터링 (소셜 페이지용)
+    queryBuilder.andWhere('(post.is_private = false OR post.user.id = :userId)', {
+      userId: currentUser?.id || '00000000-0000-0000-0000-000000000000'
+    });
 
     if (cursor) {
       queryBuilder.andWhere('post.created_at < :cursor', { cursor });
