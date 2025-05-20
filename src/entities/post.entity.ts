@@ -14,7 +14,7 @@ export class Post {
   @Column({ nullable: true })
   title: string;
 
-  @Column('text')
+  @Column({ type: 'text', nullable: true })
   content: string;
 
   @Column({ nullable: true })
@@ -25,6 +25,18 @@ export class Post {
 
   @Column({ default: false })
   is_private: boolean;
+
+  @Column({ type: 'enum', enum: ['free', 'template'], default: 'free' })
+  mode: 'free' | 'template';
+
+  @Column({ type: 'text', nullable: true })
+  q1_answer: string;
+
+  @Column({ type: 'text', nullable: true })
+  q2_answer: string;
+
+  @Column({ type: 'text', nullable: true })
+  q3_answer: string;
 
   @CreateDateColumn()
   created_at: Date;

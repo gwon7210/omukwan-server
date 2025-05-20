@@ -14,43 +14,43 @@ export const createPostSeed = async (dataSource: DataSource) => {
   baseDate.setMinutes(baseDate.getMinutes() - 30);
 
   const posts = [
-    // 오목완 타입 게시물 (6개)
+    // 오묵완 타입 게시물 (6개)
     {
-      title: '오늘의 오목완',
+      title: '오늘의 오묵완',
       content: '하나님은 우리의 피난처시요 힘이시니 환난 중에 만날 큰 도움이시라',
-      post_type: '오목완',
+      post_type: '오묵완',
       user: users[0],
       created_at: new Date(baseDate.getTime() + 1 * 60000), // 1분
     },
     {
       content: '오늘도 하나님의 은혜로 하루를 시작합니다.',
-      post_type: '오목완',
+      post_type: '오묵완',
       user: users[1],
       created_at: new Date(baseDate.getTime() + 2 * 60000), // 2분
     },
     {
-      title: '오목완 묵상',
+      title: '오묵완 묵상',
       content: '여호와를 경외하는 것이 지식의 근본이니라',
-      post_type: '오목완',
+      post_type: '오묵완',
       user: users[2],
       created_at: new Date(baseDate.getTime() + 3 * 60000), // 3분
     },
     {
       content: '하나님의 말씀은 내 발에 등이요 내 길에 빛이니이다',
-      post_type: '오목완',
+      post_type: '오묵완',
       user: users[3],
       created_at: new Date(baseDate.getTime() + 4 * 60000), // 4분
     },
     {
-      title: '오늘의 오목완',
+      title: '오늘의 오묵완',
       content: '내가 네게 명령한 것이 아니냐 강하고 담대하라 두려워하지 말며 놀라지 말라 네 하나님 여호와가 네가 어디로 가든지 너와 함께 있느니라',
-      post_type: '오목완',
+      post_type: '오묵완',
       user: users[4],
       created_at: new Date(baseDate.getTime() + 5 * 60000), // 5분
     },
     {
       content: '여호와는 나의 목자시니 내가 부족함이 없으리로다',
-      post_type: '오목완',
+      post_type: '오묵완',
       user: users[0],
       created_at: new Date(baseDate.getTime() + 6 * 60000), // 6분
     },
@@ -221,7 +221,7 @@ export const createPostSeed = async (dataSource: DataSource) => {
   ];
 
   for (const post of posts) {
-    const newPost = postRepository.create(post);
-    await postRepository.save(newPost);
+    // const newPost = postRepository.create(post);
+    // await postRepository.save(newPost);
   }
 }; 

@@ -128,7 +128,7 @@ export class PostsService {
     const posts = await this.postsRepository
       .createQueryBuilder('post')
       .where('post.userId = :userId', { userId })
-      .andWhere('post.post_type = :type', { type: '오목완' })
+      .andWhere('post.post_type = :type', { type: '오묵완' })
       .andWhere('post.created_at >= :startDate AND post.created_at < :endDate', { startDate, endDate })
       .orderBy('post.created_at', 'DESC')
       .getMany();
@@ -138,7 +138,11 @@ export class PostsService {
       posts: posts.map(post => ({
         id: post.id,
         title: post.title,
-        content: post.content,
+        mode: post.mode,
+        content: post.mode === 'free' ? post.content : null,
+        q1_answer: post.mode === 'template' ? post.q1_answer : null,
+        q2_answer: post.mode === 'template' ? post.q2_answer : null,
+        q3_answer: post.mode === 'template' ? post.q3_answer : null,
         is_private: post.is_private,
         created_at: new Date(post.created_at.getTime() + (9 * 60 * 60 * 1000)).toISOString(), // UTC+9 (KST)
       }))
