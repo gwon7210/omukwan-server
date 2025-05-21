@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, On
 import { User } from './user.entity';
 import { Like } from './like.entity';
 import { Comment } from './comment.entity';
+import { Group } from './group.entity';
 
 @Entity('posts')
 export class Post {
@@ -23,8 +24,11 @@ export class Post {
   @Column()
   post_type: string;
 
-  @Column({ default: false })
-  is_private: boolean;
+  @Column({ type: 'enum', enum: ['public', 'group', 'private'], default: 'public' })
+  visibility: 'public' | 'group' | 'private';
+
+  @ManyToOne(() => Group, (group) => group.posts, { nullable: true })
+  group: Group | null;
 
   @Column({ type: 'enum', enum: ['free', 'template'], default: 'free' })
   mode: 'free' | 'template';

@@ -68,7 +68,8 @@ export class PostsController {
       title?: string;
       content: string;
       post_type: string;
-      is_private?: boolean;
+      visibility?: 'public' | 'group' | 'private';
+      group_id?: string;
     },
     @UploadedFile() file: Express.Multer.File,
   ) {

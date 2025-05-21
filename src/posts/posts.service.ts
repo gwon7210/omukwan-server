@@ -31,7 +31,7 @@ export class PostsService {
     }
 
     // 비공개 게시물 제외
-    queryBuilder.andWhere('post.is_private = false');
+    queryBuilder.andWhere('post.visibility = :visibility', { visibility: 'public' });
 
     if (cursor) {
       queryBuilder.andWhere('post.created_at < :cursor', { cursor });
@@ -87,7 +87,7 @@ export class PostsService {
     }
 
     // 비공개 게시물 접근 제한
-    if (post.is_private && post.user.id !== currentUser?.id) {
+    if (post.visibility === 'private' && post.user.id !== currentUser?.id) {
       throw new NotFoundException(`게시물을 찾을 수 없습니다.`);
     }
 
@@ -114,7 +114,8 @@ export class PostsService {
     content: string;
     image_url?: string;
     post_type: string;
-    is_private?: boolean;
+    visibility?: 'public' | 'group' | 'private';
+    group_id?: string;
     user: User;
   }): Promise<Post> {
     const post = this.postsRepository.create(createPostDto);
@@ -143,7 +144,7 @@ export class PostsService {
         q1_answer: post.mode === 'template' ? post.q1_answer : null,
         q2_answer: post.mode === 'template' ? post.q2_answer : null,
         q3_answer: post.mode === 'template' ? post.q3_answer : null,
-        is_private: post.is_private,
+        visibility: post.visibility,
         created_at: new Date(post.created_at.getTime() + (9 * 60 * 60 * 1000)).toISOString(), // UTC+9 (KST)
       }))
     };
@@ -160,7 +161,8 @@ export class PostsService {
       .take(limit + 1);
 
     // 비공개 게시물 필터링 (소셜 페이지용)
-    queryBuilder.andWhere('(post.is_private = false OR post.user.id = :userId)', {
+    queryBuilder.andWhere('(post.visibility = :public OR post.user.id = :userId)', {
+      public: 'public',
       userId: currentUser?.id || '00000000-0000-0000-0000-000000000000'
     });
 

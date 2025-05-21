@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany } from 'typeorm';
 import { User } from './user.entity';
 import { GroupMember } from './group-member.entity';
+import { Post } from './post.entity';
 
 @Entity('groups')
 export class Group {
@@ -10,7 +11,7 @@ export class Group {
   @Column()
   title: string;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   description: string;
 
   @Column()
@@ -36,4 +37,7 @@ export class Group {
 
   @OneToMany(() => GroupMember, (groupMember) => groupMember.group)
   members: GroupMember[];
+
+  @OneToMany(() => Post, (post) => post.group)
+  posts: Post[];
 } 
