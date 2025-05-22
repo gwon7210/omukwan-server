@@ -8,7 +8,7 @@ export class GroupMember {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Group, (group) => group.members)
+  @ManyToOne(() => Group)
   group: Group;
 
   @ManyToOne(() => User, (user) => user.group_memberships)

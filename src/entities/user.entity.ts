@@ -42,9 +42,6 @@ export class User {
   @OneToMany(() => Like, (like) => like.user)
   likes: Like[];
 
-  @OneToMany(() => Group, (group) => group.creator)
-  created_groups: Group[];
-
   @OneToMany(() => GroupMember, (groupMember) => groupMember.user)
   group_memberships: GroupMember[];
 } 

@@ -1,7 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany } from 'typeorm';
-import { User } from './user.entity';
-import { GroupMember } from './group-member.entity';
-import { Post } from './post.entity';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('groups')
 export class Group {
@@ -11,33 +8,15 @@ export class Group {
   @Column()
   title: string;
 
-  @Column('text', { nullable: true })
+  @Column()
   description: string;
 
-  @Column()
-  city: string;
-
-  @Column()
-  state: string;
-
-  @Column('float')
-  latitude: number;
-
-  @Column('float')
-  longitude: number;
-
-  @Column()
-  category: string;
-
-  @ManyToOne(() => User, (user) => user.created_groups)
-  creator: User;
+  @Column({ default: 0 })
+  todayOmukwanCount: number;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
-  @OneToMany(() => GroupMember, (groupMember) => groupMember.group)
-  members: GroupMember[];
-
-  @OneToMany(() => Post, (post) => post.group)
-  posts: Post[];
+  @UpdateDateColumn()
+  updatedAt: Date;
 } 

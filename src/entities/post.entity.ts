@@ -27,7 +27,7 @@ export class Post {
   @Column({ type: 'enum', enum: ['public', 'group', 'private'], default: 'public' })
   visibility: 'public' | 'group' | 'private';
 
-  @ManyToOne(() => Group, (group) => group.posts, { nullable: true })
+  @ManyToOne(() => Group, { nullable: true })
   group: Group | null;
 
   @Column({ type: 'enum', enum: ['free', 'template'], default: 'free' })

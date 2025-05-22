@@ -1,22 +1,9 @@
 import { DataSource } from 'typeorm';
 import { User } from '../entities/user.entity';
-import { Post } from '../entities/post.entity';
-import { Comment } from '../entities/comment.entity';
 import * as bcrypt from 'bcrypt';
 
 export const createUserSeed = async (dataSource: DataSource) => {
   const userRepository = dataSource.getRepository(User);
-  const postRepository = dataSource.getRepository(Post);
-  const commentRepository = dataSource.getRepository(Comment);
-  
-  // 댓글 먼저 삭제
-  await commentRepository.delete({});
-  
-  // 게시물 삭제
-  await postRepository.delete({});
-  
-  // 그 다음 사용자 삭제
-  await userRepository.delete({});
 
   const users = [
     {
