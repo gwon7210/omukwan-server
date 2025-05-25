@@ -71,4 +71,14 @@ export class NotificationsService {
       },
     });
   }
+
+  async findByTypeAndRelatedId(userId: string, type: string, relatedId: string): Promise<Notification | null> {
+    return await this.notificationsRepository.findOne({
+      where: {
+        user: { id: userId },
+        type,
+        related_id: relatedId
+      }
+    });
+  }
 } 

@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from './user.entity';
 
 @Entity('groups')
 export class Group {
@@ -13,6 +14,10 @@ export class Group {
 
   @Column({ default: 0 })
   todayOmukwanCount: number;
+
+  @ManyToOne(() => User, { nullable: false })
+  @JoinColumn({ name: 'creator_id' })
+  creator: User;
 
   @CreateDateColumn()
   createdAt: Date;

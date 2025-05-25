@@ -67,4 +67,15 @@ export class UsersController {
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
+
+  @Get('search/phone/:phoneNumber')
+  @UseGuards(JwtAuthGuard)
+  async findByPhoneNumber(@Param('phoneNumber') phoneNumber: string) {
+    const user = await this.usersService.findByPhoneNumber(phoneNumber);
+    return {
+      id: user.id,
+      nickname: user.nickname,
+      profile_image_url: user.profile_image_url
+    };
+  }
 } 
