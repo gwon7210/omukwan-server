@@ -69,7 +69,7 @@ export class UsersController {
   }
 
   @Delete('me')
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   async deleteAccount(@Request() req) {
     await this.usersService.remove(req.user.id);
     return { message: '계정이 삭제되었습니다.' };
