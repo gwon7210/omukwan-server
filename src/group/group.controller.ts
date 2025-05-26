@@ -1,4 +1,4 @@
-import { Controller, Get, Post, UseGuards, Request, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards, Request, Param, Body, Delete } from '@nestjs/common';
 import { GroupService } from './group.service';
 import { Group } from '../entities/group.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -68,5 +68,14 @@ export class GroupController {
   ) {
     await this.groupService.declineInvite(id, req.user.id);
     return { message: '초대를 거절했습니다.' };
+  }
+
+  @Delete(':groupId/leave')
+  async leaveGroup(
+    @Param('groupId') groupId: string,
+    @Request() req
+  ) {
+    await this.groupService.leaveGroup(groupId, req.user.id);
+    return { message: '그룹을 탈퇴했습니다.' };
   }
 } 

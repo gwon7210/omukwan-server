@@ -68,6 +68,13 @@ export class UsersController {
     return this.usersService.remove(id);
   }
 
+  @Delete('me')
+  @UseGuards(JwtAuthGuard)
+  async deleteAccount(@Request() req) {
+    await this.usersService.remove(req.user.id);
+    return { message: '계정이 삭제되었습니다.' };
+  }
+
   @Get('search/phone/:phoneNumber')
   @UseGuards(JwtAuthGuard)
   async findByPhoneNumber(@Param('phoneNumber') phoneNumber: string) {

@@ -394,4 +394,36 @@ export class GroupService {
       await this.notificationsService.markAsRead(notification.id, userId);
     }
   }
+
+  async leaveGroup(groupId: string, userId: string): Promise<void> {
+    // 그룹 존재 여부 확인
+    const group = await this.groupRepository.findOne({
+      where: { id: groupId },
+      relations: ['creator']
+    });
+
+    if (!group) {
+      throw new NotFoundException('그룹을 찾을 수 없습니다.');
+    }
+
+    // 그룹 멤버인지 확인
+    const groupMember = await this.groupMemberRepository.findOne({
+      where: {
+        group: { id: groupId },
+        user: { id: userId }
+      }
+    });
+
+    if (!groupMember) {
+      throw new BadRequestException('해당 그룹의 멤버가 아닙니다.');
+    }
+
+    // 그룹장인 경우 탈퇴 불가
+    if (group.creator && group.creator.id === userId) {
+      throw new BadRequestException('그룹장은 그룹을 탈퇴할 수 없습니다.');
+    }
+
+    // 그룹 멤버에서 제거
+    await this.groupMemberRepository.remove(groupMember);
+  }
 } 
