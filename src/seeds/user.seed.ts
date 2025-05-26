@@ -41,6 +41,13 @@ export const createUserSeed = async (dataSource: DataSource) => {
       faith_confession: '찬양으로 영광 돌리겠습니다',
       password: await bcrypt.hash('123', 10),
     },
+    {
+      phone_number: '01011112222',
+      nickname: 'tester',
+      church_name: 'tester 교회',
+      faith_confession: 'test message',
+      password: await bcrypt.hash('test123', 10),
+    },
   ];
 
   for (const user of users) {
