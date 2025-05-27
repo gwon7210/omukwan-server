@@ -156,7 +156,7 @@ export class PostsService {
       .leftJoinAndSelect('post.user', 'user')
       .loadRelationCountAndMap('post.likes_count', 'post.likes')
       .loadRelationCountAndMap('post.comments_count', 'post.comments')
-      .where('(post.title ILIKE :keyword OR post.content ILIKE :keyword)', { keyword: `%${keyword}%` })
+      .where('(post.title ILIKE :keyword OR post.content ILIKE :keyword OR post.q1_answer ILIKE :keyword OR post.q2_answer ILIKE :keyword OR post.q3_answer ILIKE :keyword)', { keyword: `%${keyword}%` })
       .orderBy('post.created_at', 'DESC')
       .take(limit + 1);
 
