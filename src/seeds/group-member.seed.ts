@@ -31,7 +31,7 @@ export const groupMemberSeed = async (dataSource: DataSource) => {
         user: { id: user.id },
         group: { id: group.id },
       });
-      // await groupMemberRepository.save(groupMember);
+      await groupMemberRepository.save(groupMember);
     }
   }
 }; 

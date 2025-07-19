@@ -26,10 +26,10 @@ async function bootstrap() {
   
   // 시드 데이터 생성
   const dataSource = app.get(DataSource);
-  // await createUserSeed(dataSource);
-  // await groupSeed(dataSource);
-  // await groupMemberSeed(dataSource);
-  // await createPostSeed(dataSource);
+  await createUserSeed(dataSource);
+  await groupSeed(dataSource);
+  await groupMemberSeed(dataSource);
+  await createPostSeed(dataSource);
   
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
