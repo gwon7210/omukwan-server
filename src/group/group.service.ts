@@ -220,11 +220,10 @@ export class GroupService {
     return savedGroup;
   }
 
-  async inviteUser(groupId: string, inviterId: string, phoneNumber: string): Promise<void> {
+  async inviteUser(groupId: string, inviterId: string, kakaoId: string): Promise<void> {
     // 그룹 존재 여부 확인
     const group = await this.groupRepository.findOne({
-      where: { id: groupId },
-      relations: ['creator'],
+      where: { id: groupId }
     });
 
     if (!group) {
@@ -243,31 +242,31 @@ export class GroupService {
       throw new BadRequestException('그룹 멤버만 초대할 수 있습니다.');
     }
 
-    // 이미 초대된 전화번호인지 확인
+    // 이미 초대된 카카오 ID인지 확인
     const existingInvite = await this.groupInviteRepository.findOne({
       where: {
         group: { id: groupId },
-        phone_number: phoneNumber,
+        kakao_id: kakaoId,
         status: 'pending'
       }
     });
 
     if (existingInvite) {
-      throw new BadRequestException('이미 초대된 전화번호입니다.');
+      throw new BadRequestException('이미 초대된 사용자입니다.');
     }
 
     // 초대 정보 저장
     const invite = this.groupInviteRepository.create({
       group,
       inviter: { id: inviterId },
-      phone_number: phoneNumber,
+      kakao_id: kakaoId,
       status: 'pending'
     });
     const savedInvite = await this.groupInviteRepository.save(invite);
 
-    // 해당 전화번호로 가입된 유저가 있는지 확인
+    // 해당 카카오 ID로 가입된 유저가 있는지 확인
     const invitedUser = await this.userRepository.findOne({
-      where: { phone_number: phoneNumber }
+      where: { kakao_id: kakaoId }
     });
 
     if (invitedUser) {
@@ -300,13 +299,13 @@ export class GroupService {
       throw new NotFoundException('초대 정보를 찾을 수 없습니다.');
     }
 
-    // 초대된 전화번호와 유저의 전화번호가 일치하는지 확인
+    // 초대된 카카오 ID와 유저의 카카오 ID가 일치하는지 확인
     const user = await this.userRepository.findOne({
       where: { id: userId }
     });
 
-    if (!user || user.phone_number !== invite.phone_number) {
-      throw new BadRequestException('초대된 전화번호와 일치하지 않습니다.');
+    if (!user || user.kakao_id !== invite.kakao_id) {
+      throw new BadRequestException('초대된 사용자가 아닙니다.');
     }
 
     // 이미 수락된 초대인지 확인
@@ -361,13 +360,13 @@ export class GroupService {
       throw new NotFoundException('초대 정보를 찾을 수 없습니다.');
     }
 
-    // 초대된 전화번호와 유저의 전화번호가 일치하는지 확인
+    // 초대된 카카오 ID와 유저의 카카오 ID가 일치하는지 확인
     const user = await this.userRepository.findOne({
       where: { id: userId }
     });
 
-    if (!user || user.phone_number !== invite.phone_number) {
-      throw new BadRequestException('초대된 전화번호와 일치하지 않습니다.');
+    if (!user || user.kakao_id !== invite.kakao_id) {
+      throw new BadRequestException('초대된 사용자가 아닙니다.');
     }
 
     // 이미 수락된 초대인지 확인

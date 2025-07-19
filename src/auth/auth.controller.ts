@@ -7,14 +7,6 @@ import { KakaoSignupDto } from './dto/kakao-signup.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('login')
-  async login(
-    @Body('phone_number') phoneNumber: string,
-    @Body('password') password: string,
-  ) {
-    return this.authService.login(phoneNumber, password);
-  }
-
   @Post('kakao-login')
   async kakaoLogin(@Body() kakaoLoginDto: KakaoLoginDto) {
     return this.authService.kakaoLogin(kakaoLoginDto);

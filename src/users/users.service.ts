@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
-import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -12,9 +11,6 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: Partial<User>): Promise<User> {
-    if (createUserDto.password) {
-      createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
-    }
     const user = this.usersRepository.create(createUserDto);
     return await this.usersRepository.save(user);
   }
@@ -28,13 +24,13 @@ export class UsersService {
       where: { id },
       select: {
         id: true,
-        phone_number: true,
-        is_phone_verified: true,
         nickname: true,
         church_name: true,
         faith_confession: true,
         is_approved: true,
         profile_image_url: true,
+        kakao_id: true,
+        kakao_email: true,
         created_at: true
       }
     });
@@ -44,10 +40,10 @@ export class UsersService {
     return user;
   }
 
-  async findByPhoneNumber(phoneNumber: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { phone_number: phoneNumber } });
+  async findByKakaoId(kakaoId: string): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { kakao_id: kakaoId } });
     if (!user) {
-      throw new NotFoundException(`User with phone number ${phoneNumber} not found`);
+      throw new NotFoundException(`User with Kakao ID ${kakaoId} not found`);
     }
     return user;
   }

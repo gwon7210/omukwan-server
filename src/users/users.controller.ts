@@ -75,10 +75,10 @@ export class UsersController {
     return { message: '계정이 삭제되었습니다.' };
   }
 
-  @Get('search/phone/:phoneNumber')
+  @Get('search/kakao/:kakaoId')
   @UseGuards(JwtAuthGuard)
-  async findByPhoneNumber(@Param('phoneNumber') phoneNumber: string) {
-    const user = await this.usersService.findByPhoneNumber(phoneNumber);
+  async findByKakaoId(@Param('kakaoId') kakaoId: string) {
+    const user = await this.usersService.findByKakaoId(kakaoId);
     return {
       id: user.id,
       nickname: user.nickname,

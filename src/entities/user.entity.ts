@@ -9,12 +9,6 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true, nullable: true })
-  phone_number: string;
-
-  @Column({ default: false })
-  is_phone_verified: boolean;
-
   @Column()
   nickname: string;
 
@@ -26,9 +20,6 @@ export class User {
 
   @Column({ default: false })
   is_approved: boolean;
-
-  @Column({ select: false, nullable: true })
-  password: string;
 
   @Column({ nullable: true, type: 'varchar' })
   profile_image_url: string | null;
