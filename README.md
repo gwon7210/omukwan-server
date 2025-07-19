@@ -35,6 +35,7 @@
 - PostgreSQL
 - JWT Authentication
 - Passport.js
+- 카카오 소셜 로그인
 
 ## 시작하기
 
@@ -68,6 +69,82 @@ $ npm run start:prod
 
 ## API 문서
 
+### 인증 API
+
+#### 1. 카카오 로그인 (POST /auth/kakao-login)
+
+기존 카카오 사용자의 로그인을 처리합니다.
+
+**요청:**
+```json
+{
+  "access_token": "카카오_액세스_토큰",
+  "user_id": "카카오_사용자_ID", 
+  "email": "사용자_이메일",
+  "nickname": "사용자_닉네임",
+  "profile_image": "프로필_이미지_URL"
+}
+```
+
+**응답:**
+```json
+{
+  "access_token": "백엔드_발급_토큰",
+  "refresh_token": "리프레시_토큰",
+  "user": {
+    "id": "사용자_ID",
+    "nickname": "닉네임",
+    "email": "이메일",
+    "profile_image": "프로필_이미지"
+  }
+}
+```
+
+#### 2. 카카오 회원가입 (POST /auth/kakao-signup)
+
+새로운 카카오 사용자의 회원가입을 처리합니다.
+
+**요청:**
+```json
+{
+  "access_token": "카카오_액세스_토큰",
+  "user_id": "카카오_사용자_ID",
+  "nickname": "사용자_닉네임", 
+  "email": "사용자_이메일",
+  "profile_image": "프로필_이미지_URL",
+  "church_name": "교회명",
+  "faith_confession": "신앙고백"
+}
+```
+
+**응답:**
+```json
+{
+  "access_token": "백엔드_발급_토큰",
+  "refresh_token": "리프레시_토큰",
+  "user": {
+    "id": "사용자_ID",
+    "nickname": "닉네임",
+    "email": "이메일",
+    "profile_image": "프로필_이미지"
+  }
+}
+```
+
+### 구현 로직
+
+1. **카카오 토큰 검증**: 카카오 API로 액세스 토큰 유효성 확인
+2. **사용자 정보 조회**: 카카오 API로 사용자 상세 정보 가져오기
+3. **기존 사용자 확인**: `kakao_id`로 기존 회원인지 확인
+4. **회원가입/로그인 처리**: 신규면 회원가입, 기존이면 로그인
+
+### 데이터베이스 스키마
+
+User 테이블에 추가된 필드:
+- `kakao_id` VARCHAR(255) UNIQUE
+- `kakao_email` VARCHAR(255)
+- `profile_image_url` TEXT (기존 필드)
+
 API 문서는 Swagger를 통해 제공됩니다. 서버가 실행된 후 다음 URL에서 확인할 수 있습니다:
 ```
 http://localhost:3000/api
@@ -91,6 +168,11 @@ $ npm run test:cov
 ```
 src/
 ├── auth/           # 인증 관련 모듈
+│   ├── dto/        # 데이터 전송 객체
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   ├── kakao.service.ts
+│   └── jwt.strategy.ts
 ├── users/          # 사용자 관련 모듈
 ├── common/         # 공통 유틸리티
 ├── config/         # 설정 파일

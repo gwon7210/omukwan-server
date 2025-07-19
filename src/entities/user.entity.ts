@@ -9,7 +9,7 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   phone_number: string;
 
   @Column({ default: false })
@@ -27,11 +27,18 @@ export class User {
   @Column({ default: false })
   is_approved: boolean;
 
-  @Column({ select: false })
+  @Column({ select: false, nullable: true })
   password: string;
 
   @Column({ nullable: true, type: 'varchar' })
   profile_image_url: string | null;
+
+  // 카카오 로그인 관련 필드
+  @Column({ unique: true, nullable: true })
+  kakao_id: string;
+
+  @Column({ nullable: true })
+  kakao_email: string;
 
   @CreateDateColumn()
   created_at: Date;
