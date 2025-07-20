@@ -48,6 +48,14 @@ export class UsersService {
     return user;
   }
 
+  async findByKakaoEmail(kakaoEmail: string): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { kakao_email: kakaoEmail } });
+    if (!user) {
+      throw new NotFoundException(`User with Kakao Email ${kakaoEmail} not found`);
+    }
+    return user;
+  }
+
   async update(id: string, updateUserDto: Partial<User>): Promise<User> {
     await this.usersRepository.update(id, updateUserDto);
     return this.findOne(id);

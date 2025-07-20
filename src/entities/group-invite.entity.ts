@@ -16,7 +16,7 @@ export class GroupInvite {
   inviter: User;
 
   @Column()
-  kakao_id: string;
+  kakao_email: string;
 
   @Column({
     type: 'enum',

@@ -85,4 +85,15 @@ export class UsersController {
       profile_image_url: user.profile_image_url
     };
   }
+  
+  @Get('search/kakao-email/:kakaoEmail')
+  @UseGuards(JwtAuthGuard)
+  async findByKakaoEmail(@Param('kakaoEmail') kakaoEmail: string) {
+    const user = await this.usersService.findByKakaoEmail(kakaoEmail);
+    return {
+      id: user.id,
+      nickname: user.nickname,
+      profile_image_url: user.profile_image_url
+    };
+  }
 } 

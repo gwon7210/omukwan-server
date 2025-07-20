@@ -45,10 +45,10 @@ export class GroupController {
   @Post(':id/invite')
   async inviteUser(
     @Param('id') id: string,
-    @Body('kakao_id') kakaoId: string,
+    @Body('kakao_email') kakaoEmail: string,
     @Request() req
   ) {
-    await this.groupService.inviteUser(id, req.user.id, kakaoId);
+    await this.groupService.inviteUserByEmail(id, req.user.id, kakaoEmail);
     return { message: '초대가 완료되었습니다.' };
   }
 

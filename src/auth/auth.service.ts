@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -6,6 +6,7 @@ import { User } from '../entities/user.entity';
 import { KakaoService } from './kakao.service';
 import { KakaoLoginDto } from './dto/kakao-login.dto';
 import { KakaoSignupDto } from './dto/kakao-signup.dto';
+import { TestLoginDto } from './dto/test-login.dto';
 
 @Injectable()
 export class AuthService {
@@ -101,6 +102,35 @@ export class AuthService {
         nickname: savedUser.nickname,
         email: savedUser.kakao_email,
         profile_image: savedUser.profile_image_url,
+      },
+    };
+  }
+
+  async testLogin(testLoginDto: TestLoginDto) {
+    // 이메일로 사용자 찾기
+    const user = await this.usersRepository.findOne({
+      where: { kakao_email: testLoginDto.email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('등록되지 않은 사용자입니다.');
+    }
+
+    // JWT 토큰 생성
+    const payload = { 
+      sub: user.id, 
+      kakaoId: user.kakao_id,
+      type: 'test'
+    };
+    
+    const accessToken = this.jwtService.sign(payload);
+
+    return {
+      access_token: accessToken,
+      user: {
+        id: user.id,
+        email: user.kakao_email,
+        nickname: user.nickname,
       },
     };
   }

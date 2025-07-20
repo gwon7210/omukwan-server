@@ -242,11 +242,25 @@ export class GroupService {
       throw new BadRequestException('그룹 멤버만 초대할 수 있습니다.');
     }
 
-    // 이미 초대된 카카오 ID인지 확인
+    // 해당 카카오 ID로 가입된 유저가 있는지 확인
+    const invitedUser = await this.userRepository.findOne({
+      where: { kakao_id: kakaoId }
+    });
+
+    if (!invitedUser) {
+      throw new NotFoundException('해당 ID로 가입된 사용자를 찾을 수 없습니다.');
+    }
+
+    const kakaoEmail = invitedUser.kakao_email;
+    if (!kakaoEmail) {
+      throw new BadRequestException('사용자의 카카오 이메일 정보가 없습니다.');
+    }
+
+    // 이미 초대된 이메일인지 확인
     const existingInvite = await this.groupInviteRepository.findOne({
       where: {
         group: { id: groupId },
-        kakao_id: kakaoId,
+        kakao_email: kakaoEmail,
         status: 'pending'
       }
     });
@@ -255,37 +269,124 @@ export class GroupService {
       throw new BadRequestException('이미 초대된 사용자입니다.');
     }
 
+    // 이미 그룹 멤버인지 확인
+    const existingMember = await this.groupMemberRepository.findOne({
+      where: {
+        group: { id: groupId },
+        user: { id: invitedUser.id }
+      }
+    });
+
+    if (existingMember) {
+      throw new BadRequestException('이미 그룹 멤버인 사용자입니다.');
+    }
+
     // 초대 정보 저장
     const invite = this.groupInviteRepository.create({
       group,
       inviter: { id: inviterId },
-      kakao_id: kakaoId,
+      kakao_email: kakaoEmail,
       status: 'pending'
     });
     const savedInvite = await this.groupInviteRepository.save(invite);
 
-    // 해당 카카오 ID로 가입된 유저가 있는지 확인
-    const invitedUser = await this.userRepository.findOne({
-      where: { kakao_id: kakaoId }
+    // 알림 생성
+    const inviterUser = await this.userRepository.findOne({
+      where: { id: inviterId }
     });
 
-    if (invitedUser) {
-      // 알림 생성
-      const inviterUser = await this.userRepository.findOne({
-        where: { id: inviterId }
-      });
-
-      if (!inviterUser) {
-        throw new NotFoundException('초대자를 찾을 수 없습니다.');
-      }
-
-      await this.notificationsService.create(
-        invitedUser,
-        'group_invite',
-        `${inviterUser.nickname}님이 '${group.title}'에 초대했어요!`,
-        savedInvite.id
-      );
+    if (!inviterUser) {
+      throw new NotFoundException('초대자를 찾을 수 없습니다.');
     }
+
+    await this.notificationsService.create(
+      invitedUser,
+      'group_invite',
+      `${inviterUser.nickname}님이 '${group.title}'에 초대했어요!`,
+      savedInvite.id
+    );
+  }
+
+  async inviteUserByEmail(groupId: string, inviterId: string, kakaoEmail: string): Promise<void> {
+    // 그룹 존재 여부 확인
+    const group = await this.groupRepository.findOne({
+      where: { id: groupId }
+    });
+
+    if (!group) {
+      throw new NotFoundException('그룹을 찾을 수 없습니다.');
+    }
+
+    // 초대하는 사람이 그룹의 멤버인지 확인
+    const inviter = await this.groupMemberRepository.findOne({
+      where: {
+        group: { id: groupId },
+        user: { id: inviterId }
+      }
+    });
+
+    if (!inviter) {
+      throw new BadRequestException('그룹 멤버만 초대할 수 있습니다.');
+    }
+
+    // 이메일로 사용자 찾기
+    const invitedUser = await this.userRepository.findOne({
+      where: { kakao_email: kakaoEmail }
+    });
+
+    if (!invitedUser) {
+      throw new NotFoundException('해당 이메일로 가입된 사용자를 찾을 수 없습니다.');
+    }
+
+    // 이미 초대된 사용자인지 확인
+    const existingInvite = await this.groupInviteRepository.findOne({
+      where: {
+        group: { id: groupId },
+        kakao_email: kakaoEmail,
+        status: 'pending'
+      }
+    });
+
+    if (existingInvite) {
+      throw new BadRequestException('이미 초대된 사용자입니다.');
+    }
+
+    // 이미 그룹 멤버인지 확인
+    const existingMember = await this.groupMemberRepository.findOne({
+      where: {
+        group: { id: groupId },
+        user: { id: invitedUser.id }
+      }
+    });
+
+    if (existingMember) {
+      throw new BadRequestException('이미 그룹 멤버인 사용자입니다.');
+    }
+
+    // 초대 정보 저장
+    const invite = this.groupInviteRepository.create({
+      group,
+      inviter: { id: inviterId },
+      kakao_email: kakaoEmail,
+      status: 'pending'
+    });
+    const savedInvite = await this.groupInviteRepository.save(invite);
+
+    // 알림 생성
+    const inviterUser = await this.userRepository.findOne({
+      where: { id: inviterId }
+    });
+
+    if (!inviterUser) {
+      throw new NotFoundException('초대자를 찾을 수 없습니다.');
+    }
+
+    await this.notificationsService.create(
+      invitedUser,
+      'group_invite',
+      `${inviterUser.nickname}님이 '${group.title}'에 초대했어요!`,
+      savedInvite.id
+    );
   }
 
   async acceptInvite(inviteId: string, userId: string): Promise<void> {
@@ -299,12 +400,12 @@ export class GroupService {
       throw new NotFoundException('초대 정보를 찾을 수 없습니다.');
     }
 
-    // 초대된 카카오 ID와 유저의 카카오 ID가 일치하는지 확인
+    // 초대된 이메일과 유저의 이메일이 일치하는지 확인
     const user = await this.userRepository.findOne({
       where: { id: userId }
     });
 
-    if (!user || user.kakao_id !== invite.kakao_id) {
+    if (!user || user.kakao_email !== invite.kakao_email) {
       throw new BadRequestException('초대된 사용자가 아닙니다.');
     }
 
@@ -360,12 +461,12 @@ export class GroupService {
       throw new NotFoundException('초대 정보를 찾을 수 없습니다.');
     }
 
-    // 초대된 카카오 ID와 유저의 카카오 ID가 일치하는지 확인
+    // 초대된 이메일과 유저의 이메일이 일치하는지 확인
     const user = await this.userRepository.findOne({
       where: { id: userId }
     });
 
-    if (!user || user.kakao_id !== invite.kakao_id) {
+    if (!user || user.kakao_email !== invite.kakao_email) {
       throw new BadRequestException('초대된 사용자가 아닙니다.');
     }
 
