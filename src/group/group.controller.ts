@@ -10,7 +10,7 @@ export class GroupController {
   constructor(private readonly groupService: GroupService) {}
 
   @Get()
-  async findAll(@Request() req): Promise<{ groups: Group[] }> {
+  async findAll(@Request() req): Promise<{ groups: any[] }> {
     const groups = await this.groupService.findAll(req.user.id);
     return { groups };
   }

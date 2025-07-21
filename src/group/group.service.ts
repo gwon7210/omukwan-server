@@ -26,7 +26,7 @@ export class GroupService {
     private notificationsService: NotificationsService,
   ) {}
 
-  async findAll(userId: string): Promise<Group[]> {
+  async findAll(userId: string): Promise<any[]> {
     // 사용자가 멤버로 있는 그룹만 조회
     const groupMembers = await this.groupMemberRepository.find({
       where: { user: { id: userId } },
@@ -34,21 +34,44 @@ export class GroupService {
     });
 
     const groups = groupMembers.map(gm => gm.group);
-    
-    // 각 그룹의 멤버 수를 실시간으로 계산
-    const groupsWithMemberCount = await Promise.all(
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = new Date(today);
+    const endDate = new Date(today);
+    endDate.setHours(23, 59, 59, 999);
+
+    // 각 그룹의 멤버 수, todayOmukwanCount를 실시간으로 계산
+    const groupsWithCounts = await Promise.all(
       groups.map(async (group) => {
+        // 멤버 수
         const memberCount = await this.groupMemberRepository.count({
           where: { group: { id: group.id } }
         });
+        // 그룹 멤버 id 목록
+        const groupMemberEntities = await this.groupMemberRepository.find({
+          where: { group: { id: group.id } },
+          relations: ['user']
+        });
+        const memberIds = groupMemberEntities.map(gm => gm.user.id);
+        // 오늘 오묵완 쓴 멤버 id set
+        const writtenPosts = await this.postRepository
+          .createQueryBuilder('post')
+          .leftJoin('post.user', 'user')
+          .where('post.user.id IN (:...memberIds)', { memberIds })
+          .andWhere('post.post_type = :postType', { postType: '오묵완' })
+          .andWhere('post.created_at BETWEEN :startDate AND :endDate', { startDate, endDate })
+          .select(['post.id', 'user.id'])
+          .getMany();
+        const writtenUserIds = new Set(writtenPosts.map(post => post.user?.id).filter(Boolean));
+        const todayOmukwanCount = writtenUserIds.size;
         return {
           ...group,
-          memberCount
+          memberCount,
+          todayOmukwanCount
         };
       })
     );
-
-    return groupsWithMemberCount;
+    return groupsWithCounts;
   }
 
   async getTodayOmukwans(

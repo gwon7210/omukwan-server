@@ -12,9 +12,6 @@ export class Group {
   @Column()
   description: string;
 
-  @Column({ default: 0 })
-  todayOmukwanCount: number;
-
   @ManyToOne(() => User, { nullable: false })
   @JoinColumn({ name: 'creator_id' })
   creator: User;
