@@ -15,9 +15,21 @@ export class LikesService {
   ) {}
 
   async create(user: User, post: Post): Promise<Like> {
+    // user.nickname이 없으면 DB에서 다시 조회
+    if (!user.nickname) {
+      const userRepository = this.likesRepository.manager.getRepository(User);
+      const foundUser = await userRepository.findOne({ where: { id: user.id } });
+      if (!foundUser) {
+        throw new NotFoundException('유저 정보를 찾을 수 없습니다.');
+      }
+      user = foundUser;
+    }
     const like = this.likesRepository.create({ user, post });
     const savedLike = await this.likesRepository.save(like);
 
+    console.log('user:', user);
+    console.log('user.nickname:', user.nickname);
+  
     // 자신의 게시물에 좋아요를 누른 경우 알림을 생성하지 않음
     if (post.user.id !== user.id) {
       // 이미 해당 게시물에 대한 좋아요 알림이 있는지 확인
