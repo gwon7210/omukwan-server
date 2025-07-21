@@ -20,12 +20,22 @@ export class LikesService {
 
     // 자신의 게시물에 좋아요를 누른 경우 알림을 생성하지 않음
     if (post.user.id !== user.id) {
-      await this.notificationsService.create(
-        post.user,
+      // 이미 해당 게시물에 대한 좋아요 알림이 있는지 확인
+      const existingNotification = await this.notificationsService.findByTypeAndRelatedId(
+        post.user.id,
         'like',
-        `${user.nickname}님이 회원님의 게시물을 좋아합니다.`,
         post.id
       );
+
+      // 기존 알림이 없을 때만 새로운 알림 생성
+      if (!existingNotification) {
+        await this.notificationsService.create(
+          post.user,
+          'like',
+          `${user.nickname}님이 회원님의 게시물을 좋아합니다.`,
+          post.id
+        );
+      }
     }
 
     return savedLike;
