@@ -30,8 +30,16 @@ export class PostsService {
       queryBuilder.where('post.post_type = :postType', { postType });
     }
 
-    // 비공개 게시물 제외
-    queryBuilder.andWhere('post.visibility = :visibility', { visibility: 'public' });
+    // 자기 자신의 게시글은 공개/비공개 상관없이 조회
+    if (currentUser?.id) {
+      queryBuilder.andWhere(
+        '(post.visibility = :visibility OR post.user.id = :currentUserId)',
+        { visibility: 'public', currentUserId: currentUser.id }
+      );
+    } else {
+      // 비로그인 사용자는 공개글만 조회
+      queryBuilder.andWhere('post.visibility = :visibility', { visibility: 'public' });
+    }
 
     if (cursor) {
       queryBuilder.andWhere('post.created_at < :cursor', { cursor });
