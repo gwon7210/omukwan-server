@@ -9,6 +9,7 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { Logger } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { createOmukwanSeed } from './seeds/omukwan.seed';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -30,7 +31,8 @@ async function bootstrap() {
   await groupSeed(dataSource);
   await groupMemberSeed(dataSource);
   await createPostSeed(dataSource);
-  
+  await createOmukwanSeed(dataSource);
+
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
   logger.log(`Application is running on: http://localhost:${port}`);

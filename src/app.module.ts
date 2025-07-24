@@ -12,6 +12,7 @@ import { CommentsModule } from './comments/comments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { GroupModule } from './group/group.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { OmukwanModule } from './omukwan/omukwan.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UploadsModule } from './uploads/uploads.module';
     NotificationsModule,
     GroupModule,
     UploadsModule,
+    OmukwanModule,
   ],
   controllers: [AppController],
   providers: [AppService],
