@@ -34,6 +34,13 @@ export class User {
   @CreateDateColumn()
   created_at: Date;
 
+  // 논리 삭제를 위한 필드
+  @Column({ default: false })
+  is_deleted: boolean;
+
+  @Column({ nullable: true })
+  deleted_at: Date;
+
   @OneToMany(() => Post, (post) => post.user)
   posts: Post[];
 
