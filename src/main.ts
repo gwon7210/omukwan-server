@@ -10,9 +10,19 @@ import { Logger } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { createOmukwanSeed } from './seeds/omukwan.seed';
+import { validateEnvironmentVariables } from './config/env.validation';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
+  
+  // 환경변수 검증
+  try {
+    validateEnvironmentVariables();
+  } catch (error) {
+    logger.error('Environment validation failed:', error.message);
+    process.exit(1);
+  }
+  
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
