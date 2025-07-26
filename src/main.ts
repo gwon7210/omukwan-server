@@ -27,6 +27,12 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
   
+  // CORS 설정
+  app.enableCors({
+    origin: '*', // Flutter 앱에서는 * 허용 필요
+    credentials: true,
+  });
+  
   // 정적 파일 제공 설정
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads',
@@ -48,8 +54,8 @@ async function bootstrap() {
   }
 
   const port = process.env.PORT ?? 3000;
-  await app.listen(port);
-  logger.log(`Application is running on: http://localhost:${port}`);
+  await app.listen(port, '0.0.0.0');
+  logger.log(`Application is running on: http://0.0.0.0:${port}`);
 }
 
 bootstrap();
