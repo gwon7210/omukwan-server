@@ -92,4 +92,10 @@ export class UsersController {
       profile_image_url: user.profile_image_url
     };
   }
+
+  @Get('nickname/random')
+  async generateRandomNickname() {
+    const nickname = await this.usersService.generateRandomNickname();
+    return { nickname };
+  }
 } 
