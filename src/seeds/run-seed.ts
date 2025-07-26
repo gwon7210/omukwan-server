@@ -11,6 +11,11 @@ import { User } from '../entities/user.entity';
 const dataSource = new DataSource(databaseConfig as any);
 
 async function runSeed() {
+  // 프로덕션 환경에서는 시드 데이터 실행을 방지
+  if (process.env.NODE_ENV === 'production') {
+    console.log('프로덕션 환경에서는 시드 데이터를 실행할 수 없습니다.');
+    process.exit(0);
+  }
   try {
     await dataSource.initialize();
     console.log('데이터베이스 연결 성공');
