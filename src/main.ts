@@ -36,12 +36,16 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   
   // 시드 데이터 생성
-  const dataSource = app.get(DataSource);
-  await createUserSeed(dataSource);
-  await groupSeed(dataSource);
-  await groupMemberSeed(dataSource);
-  await createPostSeed(dataSource);
-  await createOmukwanSeed(dataSource);
+  if (process.env.NODE_ENV !== 'production') {
+    const dataSource = app.get(DataSource);
+    await createUserSeed(dataSource);
+    await groupSeed(dataSource);
+    await groupMemberSeed(dataSource);
+    await createPostSeed(dataSource);
+    await createOmukwanSeed(dataSource);
+  } else {
+    logger.log('프로덕션 환경에서는 시드 데이터가 실행되지 않습니다.');
+  }
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
