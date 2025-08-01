@@ -38,6 +38,11 @@ async function bootstrap() {
     prefix: '/uploads',
   });
   
+  // 공개 정적 파일 제공 설정 (계정 삭제 안내 페이지 등)
+  app.useStaticAssets(join(__dirname, '..', 'public'), {
+    prefix: '/',
+  });
+  
   // 전역 예외 필터 적용
   app.useGlobalFilters(new HttpExceptionFilter());
   
