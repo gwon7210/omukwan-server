@@ -1,6 +1,7 @@
-import { Controller, Get, Query, HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Query, Body, HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
 import { OmukwanService } from './omukwan.service';
-import { Omukwan } from '../entities/omukwan.entity';
+import { CollectMonthDto } from './dto/collect-month.dto';
+import { CollectDateDto } from './dto/collect-date.dto';
 
 @Controller('omukwan')
 export class OmukwanController {
@@ -33,6 +34,59 @@ export class OmukwanController {
         };
       }
       throw error;
+    }
+  }
+
+  @Post('collect/date')
+  async collectDailyData(@Body() collectDateDto: CollectDateDto) {
+    try {
+      const result = await this.omukwanService.collectDailyData(collectDateDto.date);
+      
+      return {
+        success: true,
+        message: '묵상 데이터 수집이 완료되었습니다.',
+        data: {
+          date: typeof result.date === 'string' ? result.date : result.date.toISOString().split('T')[0],
+          verseTitle: result.verseTitle,
+          verseRange: result.verseRange,
+          fullVerse: result.fullVerse,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `묵상 데이터 수집에 실패했습니다: ${error.message}`,
+      };
+    }
+  }
+
+  @Post('collect/month')
+  async collectMonthlyData(@Body() collectMonthDto: CollectMonthDto) {
+    try {
+      const results = await this.omukwanService.collectMonthlyData(
+        collectMonthDto.year,
+        collectMonthDto.month,
+      );
+
+      return {
+        success: true,
+        message: `${collectMonthDto.year}년 ${collectMonthDto.month}월 묵상 데이터 수집이 완료되었습니다.`,
+        data: {
+          totalCollected: results.length,
+          year: collectMonthDto.year,
+          month: collectMonthDto.month,
+          results: results.map(item => ({
+            date: typeof item.date === 'string' ? item.date : item.date.toISOString().split('T')[0],
+            verseTitle: item.verseTitle,
+            verseRange: item.verseRange,
+          })),
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `월별 묵상 데이터 수집에 실패했습니다: ${error.message}`,
+      };
     }
   }
 } 
