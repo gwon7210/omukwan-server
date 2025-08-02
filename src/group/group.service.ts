@@ -541,11 +541,6 @@ export class GroupService {
       throw new BadRequestException('해당 그룹의 멤버가 아닙니다.');
     }
 
-    // 그룹장인 경우 탈퇴 불가
-    if (group.creator && group.creator.id === userId) {
-      throw new BadRequestException('그룹장은 그룹을 탈퇴할 수 없습니다.');
-    }
-
     // 그룹 멤버에서 제거
     await this.groupMemberRepository.remove(groupMember);
   }

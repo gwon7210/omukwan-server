@@ -49,7 +49,7 @@ async function bootstrap() {
   // 시드 데이터 생성
   if (process.env.NODE_ENV !== 'production') {
     const dataSource = app.get(DataSource);
-    // await createUserSeed(dataSource);
+    await createUserSeed(dataSource);
     // await groupSeed(dataSource);
     // await groupMemberSeed(dataSource);
     // await createPostSeed(dataSource);
