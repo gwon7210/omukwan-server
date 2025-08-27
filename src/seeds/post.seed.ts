@@ -221,7 +221,7 @@ export const createPostSeed = async (dataSource: DataSource) => {
   ];
 
   for (const post of posts) {
-    // const newPost = postRepository.create(post);
-    // await postRepository.save(newPost);
+    const newPost = postRepository.create(post);
+    await postRepository.save(newPost);
   }
 }; 

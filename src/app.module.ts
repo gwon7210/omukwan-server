@@ -11,6 +11,8 @@ import { LikesModule } from './likes/likes.module';
 import { CommentsModule } from './comments/comments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { GroupModule } from './group/group.module';
+import { UploadsModule } from './uploads/uploads.module';
+import { OmukwanModule } from './omukwan/omukwan.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { GroupModule } from './group/group.module';
     CommentsModule,
     NotificationsModule,
     GroupModule,
+    UploadsModule,
+    OmukwanModule,
   ],
   controllers: [AppController],
   providers: [AppService],

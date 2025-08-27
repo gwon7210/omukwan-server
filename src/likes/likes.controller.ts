@@ -13,13 +13,13 @@ export class LikesController {
 
   @Post('posts/:postId')
   async likePost(@Param('postId') postId: string, @Request() req) {
-    const post = await this.postsService.findOne(postId);
+    const post = await this.postsService.findOne(postId, req.user);
     return this.likesService.create(req.user, post);
   }
 
   @Delete('posts/:postId')
   async unlikePost(@Param('postId') postId: string, @Request() req) {
-    const post = await this.postsService.findOne(postId);
+    const post = await this.postsService.findOne(postId, req.user);
     return this.likesService.remove(req.user, post);
   }
 
@@ -29,14 +29,14 @@ export class LikesController {
   }
 
   @Get('posts/:postId')
-  async getPostLikes(@Param('postId') postId: string) {
-    const post = await this.postsService.findOne(postId);
+  async getPostLikes(@Param('postId') postId: string, @Request() req) {
+    const post = await this.postsService.findOne(postId, req.user);
     return this.likesService.findByPost(post);
   }
 
   @Get('posts/:postId/check')
   async checkIfLiked(@Param('postId') postId: string, @Request() req) {
-    const post = await this.postsService.findOne(postId);
+    const post = await this.postsService.findOne(postId, req.user);
     return this.likesService.checkIfLiked(req.user, post);
   }
 } 

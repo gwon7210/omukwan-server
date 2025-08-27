@@ -10,7 +10,7 @@ export class GroupController {
   constructor(private readonly groupService: GroupService) {}
 
   @Get()
-  async findAll(@Request() req): Promise<{ groups: Group[] }> {
+  async findAll(@Request() req): Promise<{ groups: any[] }> {
     const groups = await this.groupService.findAll(req.user.id);
     return { groups };
   }
@@ -45,10 +45,10 @@ export class GroupController {
   @Post(':id/invite')
   async inviteUser(
     @Param('id') id: string,
-    @Body('phone_number') phoneNumber: string,
+    @Body('kakao_email') kakaoEmail: string,
     @Request() req
   ) {
-    await this.groupService.inviteUser(id, req.user.id, phoneNumber);
+    await this.groupService.inviteUserByEmail(id, req.user.id, kakaoEmail);
     return { message: '초대가 완료되었습니다.' };
   }
 

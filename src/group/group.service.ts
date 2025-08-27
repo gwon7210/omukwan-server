@@ -26,7 +26,7 @@ export class GroupService {
     private notificationsService: NotificationsService,
   ) {}
 
-  async findAll(userId: string): Promise<Group[]> {
+  async findAll(userId: string): Promise<any[]> {
     // 사용자가 멤버로 있는 그룹만 조회
     const groupMembers = await this.groupMemberRepository.find({
       where: { user: { id: userId } },
@@ -34,21 +34,44 @@ export class GroupService {
     });
 
     const groups = groupMembers.map(gm => gm.group);
-    
-    // 각 그룹의 멤버 수를 실시간으로 계산
-    const groupsWithMemberCount = await Promise.all(
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = new Date(today);
+    const endDate = new Date(today);
+    endDate.setHours(23, 59, 59, 999);
+
+    // 각 그룹의 멤버 수, todayOmukwanCount를 실시간으로 계산
+    const groupsWithCounts = await Promise.all(
       groups.map(async (group) => {
+        // 멤버 수
         const memberCount = await this.groupMemberRepository.count({
           where: { group: { id: group.id } }
         });
+        // 그룹 멤버 id 목록
+        const groupMemberEntities = await this.groupMemberRepository.find({
+          where: { group: { id: group.id } },
+          relations: ['user']
+        });
+        const memberIds = groupMemberEntities.map(gm => gm.user.id);
+        // 오늘 오묵완 쓴 멤버 id set
+        const writtenPosts = await this.postRepository
+          .createQueryBuilder('post')
+          .leftJoin('post.user', 'user')
+          .where('post.user.id IN (:...memberIds)', { memberIds })
+          .andWhere('post.post_type = :postType', { postType: '오묵완' })
+          .andWhere('post.created_at BETWEEN :startDate AND :endDate', { startDate, endDate })
+          .select(['post.id', 'user.id'])
+          .getMany();
+        const writtenUserIds = new Set(writtenPosts.map(post => post.user?.id).filter(Boolean));
+        const todayOmukwanCount = writtenUserIds.size;
         return {
           ...group,
-          memberCount
+          memberCount,
+          todayOmukwanCount
         };
       })
     );
-
-    return groupsWithMemberCount;
+    return groupsWithCounts;
   }
 
   async getTodayOmukwans(
@@ -220,11 +243,10 @@ export class GroupService {
     return savedGroup;
   }
 
-  async inviteUser(groupId: string, inviterId: string, phoneNumber: string): Promise<void> {
+  async inviteUser(groupId: string, inviterId: string, kakaoId: string): Promise<void> {
     // 그룹 존재 여부 확인
     const group = await this.groupRepository.findOne({
-      where: { id: groupId },
-      relations: ['creator'],
+      where: { id: groupId }
     });
 
     if (!group) {
@@ -243,50 +265,151 @@ export class GroupService {
       throw new BadRequestException('그룹 멤버만 초대할 수 있습니다.');
     }
 
-    // 이미 초대된 전화번호인지 확인
+    // 해당 카카오 ID로 가입된 유저가 있는지 확인
+    const invitedUser = await this.userRepository.findOne({
+      where: { kakao_id: kakaoId }
+    });
+
+    if (!invitedUser) {
+      throw new NotFoundException('해당 ID로 가입된 사용자를 찾을 수 없습니다.');
+    }
+
+    const kakaoEmail = invitedUser.kakao_email;
+    if (!kakaoEmail) {
+      throw new BadRequestException('사용자의 카카오 이메일 정보가 없습니다.');
+    }
+
+    // 이미 초대된 이메일인지 확인
     const existingInvite = await this.groupInviteRepository.findOne({
       where: {
         group: { id: groupId },
-        phone_number: phoneNumber,
+        kakao_email: kakaoEmail,
         status: 'pending'
       }
     });
 
     if (existingInvite) {
-      throw new BadRequestException('이미 초대된 전화번호입니다.');
+      throw new BadRequestException('이미 초대된 사용자입니다.');
+    }
+
+    // 이미 그룹 멤버인지 확인
+    const existingMember = await this.groupMemberRepository.findOne({
+      where: {
+        group: { id: groupId },
+        user: { id: invitedUser.id }
+      }
+    });
+
+    if (existingMember) {
+      throw new BadRequestException('이미 그룹 멤버인 사용자입니다.');
     }
 
     // 초대 정보 저장
     const invite = this.groupInviteRepository.create({
       group,
       inviter: { id: inviterId },
-      phone_number: phoneNumber,
+      kakao_email: kakaoEmail,
       status: 'pending'
     });
     const savedInvite = await this.groupInviteRepository.save(invite);
 
-    // 해당 전화번호로 가입된 유저가 있는지 확인
-    const invitedUser = await this.userRepository.findOne({
-      where: { phone_number: phoneNumber }
+    // 알림 생성
+    const inviterUser = await this.userRepository.findOne({
+      where: { id: inviterId }
     });
 
-    if (invitedUser) {
-      // 알림 생성
-      const inviterUser = await this.userRepository.findOne({
-        where: { id: inviterId }
-      });
-
-      if (!inviterUser) {
-        throw new NotFoundException('초대자를 찾을 수 없습니다.');
-      }
-
-      await this.notificationsService.create(
-        invitedUser,
-        'group_invite',
-        `${inviterUser.nickname}님이 '${group.title}'에 초대했어요!`,
-        savedInvite.id
-      );
+    if (!inviterUser) {
+      throw new NotFoundException('초대자를 찾을 수 없습니다.');
     }
+
+    await this.notificationsService.create(
+      invitedUser,
+      'group_invite',
+      `${inviterUser.nickname}님이 '${group.title}'에 초대했어요!`,
+      savedInvite.id
+    );
+  }
+
+  async inviteUserByEmail(groupId: string, inviterId: string, kakaoEmail: string): Promise<void> {
+    // 그룹 존재 여부 확인
+    const group = await this.groupRepository.findOne({
+      where: { id: groupId }
+    });
+
+    if (!group) {
+      throw new NotFoundException('그룹을 찾을 수 없습니다.');
+    }
+
+    // 초대하는 사람이 그룹의 멤버인지 확인
+    const inviter = await this.groupMemberRepository.findOne({
+      where: {
+        group: { id: groupId },
+        user: { id: inviterId }
+      }
+    });
+
+    if (!inviter) {
+      throw new BadRequestException('그룹 멤버만 초대할 수 있습니다.');
+    }
+
+    // 이메일로 사용자 찾기
+    const invitedUser = await this.userRepository.findOne({
+      where: { kakao_email: kakaoEmail }
+    });
+
+    if (!invitedUser) {
+      throw new NotFoundException('해당 이메일로 가입된 사용자를 찾을 수 없습니다.');
+    }
+
+    // 이미 초대된 사용자인지 확인
+    const existingInvite = await this.groupInviteRepository.findOne({
+      where: {
+        group: { id: groupId },
+        kakao_email: kakaoEmail,
+        status: 'pending'
+      }
+    });
+
+    if (existingInvite) {
+      throw new BadRequestException('이미 초대된 사용자입니다.');
+    }
+
+    // 이미 그룹 멤버인지 확인
+    const existingMember = await this.groupMemberRepository.findOne({
+      where: {
+        group: { id: groupId },
+        user: { id: invitedUser.id }
+      }
+    });
+
+    if (existingMember) {
+      throw new BadRequestException('이미 그룹 멤버인 사용자입니다.');
+    }
+
+    // 초대 정보 저장
+    const invite = this.groupInviteRepository.create({
+      group,
+      inviter: { id: inviterId },
+      kakao_email: kakaoEmail,
+      status: 'pending'
+    });
+    const savedInvite = await this.groupInviteRepository.save(invite);
+
+    // 알림 생성
+    const inviterUser = await this.userRepository.findOne({
+      where: { id: inviterId }
+    });
+
+    if (!inviterUser) {
+      throw new NotFoundException('초대자를 찾을 수 없습니다.');
+    }
+
+    await this.notificationsService.create(
+      invitedUser,
+      'group_invite',
+      `${inviterUser.nickname}님이 '${group.title}'에 초대했어요!`,
+      savedInvite.id
+    );
   }
 
   async acceptInvite(inviteId: string, userId: string): Promise<void> {
@@ -300,13 +423,13 @@ export class GroupService {
       throw new NotFoundException('초대 정보를 찾을 수 없습니다.');
     }
 
-    // 초대된 전화번호와 유저의 전화번호가 일치하는지 확인
+    // 초대된 이메일과 유저의 이메일이 일치하는지 확인
     const user = await this.userRepository.findOne({
       where: { id: userId }
     });
 
-    if (!user || user.phone_number !== invite.phone_number) {
-      throw new BadRequestException('초대된 전화번호와 일치하지 않습니다.');
+    if (!user || user.kakao_email !== invite.kakao_email) {
+      throw new BadRequestException('초대된 사용자가 아닙니다.');
     }
 
     // 이미 수락된 초대인지 확인
@@ -361,13 +484,13 @@ export class GroupService {
       throw new NotFoundException('초대 정보를 찾을 수 없습니다.');
     }
 
-    // 초대된 전화번호와 유저의 전화번호가 일치하는지 확인
+    // 초대된 이메일과 유저의 이메일이 일치하는지 확인
     const user = await this.userRepository.findOne({
       where: { id: userId }
     });
 
-    if (!user || user.phone_number !== invite.phone_number) {
-      throw new BadRequestException('초대된 전화번호와 일치하지 않습니다.');
+    if (!user || user.kakao_email !== invite.kakao_email) {
+      throw new BadRequestException('초대된 사용자가 아닙니다.');
     }
 
     // 이미 수락된 초대인지 확인
@@ -416,11 +539,6 @@ export class GroupService {
 
     if (!groupMember) {
       throw new BadRequestException('해당 그룹의 멤버가 아닙니다.');
-    }
-
-    // 그룹장인 경우 탈퇴 불가
-    if (group.creator && group.creator.id === userId) {
-      throw new BadRequestException('그룹장은 그룹을 탈퇴할 수 없습니다.');
     }
 
     // 그룹 멤버에서 제거

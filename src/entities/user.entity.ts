@@ -9,12 +9,6 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
-  phone_number: string;
-
-  @Column({ default: false })
-  is_phone_verified: boolean;
-
   @Column()
   nickname: string;
 
@@ -27,14 +21,28 @@ export class User {
   @Column({ default: false })
   is_approved: boolean;
 
-  @Column({ select: false })
-  password: string;
-
   @Column({ nullable: true, type: 'varchar' })
   profile_image_url: string | null;
 
+  // 카카오 로그인 관련 필드
+  @Column({ unique: true, nullable: true })
+  kakao_id: string;
+
+  @Column({ nullable: true })
+  kakao_email: string;
+
   @CreateDateColumn()
   created_at: Date;
+
+  // 논리 삭제를 위한 필드
+  @Column({ default: false })
+  is_deleted: boolean;
+
+  @Column({ nullable: true })
+  deleted_at: Date;
+
+  @Column({ nullable: true })
+  last_login_at: Date;
 
   @OneToMany(() => Post, (post) => post.user)
   posts: Post[];

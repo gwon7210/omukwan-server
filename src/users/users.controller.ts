@@ -16,6 +16,7 @@ export class UsersController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   findAll() {
     return this.usersService.findAll();
   }
@@ -63,26 +64,38 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
-  }
-
   @Delete('me')
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async deleteAccount(@Request() req) {
     await this.usersService.remove(req.user.id);
     return { message: '계정이 삭제되었습니다.' };
   }
 
-  @Get('search/phone/:phoneNumber')
+  @Get('search/kakao/:kakaoId')
   @UseGuards(JwtAuthGuard)
-  async findByPhoneNumber(@Param('phoneNumber') phoneNumber: string) {
-    const user = await this.usersService.findByPhoneNumber(phoneNumber);
+  async findByKakaoId(@Param('kakaoId') kakaoId: string) {
+    const user = await this.usersService.findByKakaoId(kakaoId);
     return {
       id: user.id,
       nickname: user.nickname,
       profile_image_url: user.profile_image_url
     };
+  }
+  
+  @Get('search/kakao-email/:kakaoEmail')
+  @UseGuards(JwtAuthGuard)
+  async findByKakaoEmail(@Param('kakaoEmail') kakaoEmail: string) {
+    const user = await this.usersService.findByKakaoEmail(kakaoEmail);
+    return {
+      id: user.id,
+      nickname: user.nickname,
+      profile_image_url: user.profile_image_url
+    };
+  }
+
+  @Get('nickname/random')
+  async generateRandomNickname() {
+    const nickname = await this.usersService.generateRandomNickname();
+    return { nickname };
   }
 } 
