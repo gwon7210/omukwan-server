@@ -33,6 +33,10 @@ export class AuthService {
       throw new UnauthorizedException('등록되지 않은 사용자입니다. 회원가입을 진행해주세요.');
     }
 
+    // 마지막 로그인 시간 업데이트
+    existingUser.last_login_at = new Date();
+    await this.usersRepository.save(existingUser);
+
     // JWT 토큰 생성
     const payload = { 
       sub: existingUser.id, 
@@ -115,6 +119,10 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('등록되지 않은 사용자입니다.');
     }
+
+    // 마지막 로그인 시간 업데이트
+    user.last_login_at = new Date();
+    await this.usersRepository.save(user);
 
     // JWT 토큰 생성
     const payload = { 

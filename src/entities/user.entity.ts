@@ -41,6 +41,9 @@ export class User {
   @Column({ nullable: true })
   deleted_at: Date;
 
+  @Column({ nullable: true })
+  last_login_at: Date;
+
   @OneToMany(() => Post, (post) => post.user)
   posts: Post[];
 
